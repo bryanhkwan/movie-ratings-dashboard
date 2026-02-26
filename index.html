@@ -464,6 +464,130 @@
       letter-spacing: 0.1em;
     }
 
+    /* ── PIPELINE ── */
+    .pipeline {
+      max-width: 700px;
+    }
+
+    .pipeline-step {
+      background: var(--charcoal);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-left: 3px solid var(--gold);
+      padding: 1.75rem 2rem;
+      display: flex;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--gold);
+      opacity: 0.5;
+      line-height: 1;
+      flex-shrink: 0;
+      width: 36px;
+    }
+
+    .step-body h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.6rem;
+      color: var(--cream);
+    }
+
+    .step-body p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    .step-body p strong {
+      color: var(--cream);
+      font-weight: 500;
+    }
+
+    .pipeline-arrow {
+      font-family: 'DM Mono', monospace;
+      color: var(--gold);
+      opacity: 0.4;
+      font-size: 1.5rem;
+      padding: 0.5rem 0 0.5rem 2rem;
+    }
+
+    /* ── DOWNLOADS ── */
+    .downloads-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .download-card {
+      background: var(--charcoal);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 4px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .download-card:hover {
+      border-color: rgba(201,168,76,0.4);
+      transform: translateY(-3px);
+    }
+
+    .dl-icon { flex-shrink: 0; }
+
+    .dl-info h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--cream);
+    }
+
+    .dl-info p {
+      font-size: 0.84rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .dl-meta {
+      display: flex;
+      gap: 1rem;
+      margin-top: 0.75rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .dl-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.65rem 1.25rem;
+      text-decoration: none;
+      border-radius: 2px;
+      align-self: flex-start;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .dl-btn:hover {
+      background: var(--gold);
+      color: var(--dark);
+    }
+
     /* ── ANIMATIONS ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
@@ -754,6 +878,59 @@
   </div>
 </section>
 
+<!-- DATA PIPELINE SECTION -->
+<section>
+  <p class="section-label">Data Pipeline</p>
+  <h2>From Raw Data to Dashboard</h2>
+  <div class="divider"></div>
+  <p class="section-intro">
+    Before any visualization, the raw IMDb dataset required meaningful cleanup. Here's the full workflow — from messy source data to polished dashboards in two different tools.
+  </p>
+
+  <div class="pipeline">
+
+    <div class="pipeline-step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <h3>Raw Dataset (250 films, 7 columns)</h3>
+        <p>The source data contained 250 IMDb top-rated films with fields for <strong>Ranking, Title, Rating, Number of Reviews, Year, Runtime (Minutes),</strong> and <strong>Content Rating (MBA Rating)</strong>. Content ratings spanned multiple regional systems — R, PG-13, TV-MA, 16+, 18+, Unrated, Passed, Approved — reflecting inconsistent tagging across film eras and regions.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <h3>Data Cleaning via Power Query</h3>
+        <p>Before importing into Power BI, the dataset was cleaned using <strong>Power Query</strong> in Excel. This involved removing null and malformed entries, standardizing inconsistent content rating labels across different regional classification systems, ensuring correct data types for numeric fields like review counts and ratings, and filtering out rows with missing runtime or year values that would skew trend analysis.</p>
+        <div class="callout" style="margin-top:1rem;">→ Power Query was chosen because it creates a repeatable, auditable transformation pipeline — any future data refresh automatically applies the same cleaning steps.</div>
+      </div>
+    </div>
+
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step" style="border-color: rgba(201,168,76,0.25);">
+      <div class="step-num" style="color:var(--accent);">03a</div>
+      <div class="step-body">
+        <h3>Excel Dashboard</h3>
+        <p>An initial dashboard was built directly in <strong>Excel</strong> using pivot tables and charts — covering total reviews by year, average rating by content rating category, average runtime by content rating, and number of films per content rating. This served as rapid exploratory analysis to identify which dimensions were worth investigating further.</p>
+      </div>
+    </div>
+
+    <div class="pipeline-arrow">↓</div>
+
+    <div class="pipeline-step" style="border-color: rgba(201,168,76,0.25);">
+      <div class="step-num">03b</div>
+      <div class="step-body">
+        <h3>Power BI Dashboard</h3>
+        <p>The cleaned data was then imported into <strong>Power BI Desktop</strong> for a more polished, interactive dashboard. Power BI enabled richer visual storytelling — dual-axis charts comparing ratings and review volume over time, top-N filtering for the most reviewed films, and trend analysis across runtime segments. The Power BI report is the primary deliverable of this project.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
 <!-- ABOUT -->
 <section>
   <div class="about-section">
@@ -762,10 +939,10 @@
       <h2>Background &amp; Method</h2>
       <div class="divider"></div>
       <p style="font-size:0.9rem;color:var(--muted);line-height:1.8;margin-bottom:1rem;">
-        This dashboard was built as a university data analytics project using an IMDb dataset. The goal was to practice exploratory data visualization and uncover what attributes correlate with a film's rating and audience engagement.
+        This dashboard was built as a university data analytics project using an IMDb dataset of 250 top-rated films. The goal was to practice the full analytics workflow — data cleaning, exploratory analysis, and visual storytelling — to uncover what attributes drive a film's rating and audience engagement.
       </p>
       <p style="font-size:0.9rem;color:var(--muted);line-height:1.8;">
-        All visualizations were created in <strong style="color:var(--cream);">Microsoft Power BI Desktop</strong>, with data cleaned and filtered to focus on films appearing in IMDb's top-rated lists. The analysis covers films across multiple decades, examining review count, runtime, and release year as potential drivers of critical acclaim.
+        The project demonstrates proficiency across the full BI stack: <strong style="color:var(--cream);">Power Query</strong> for data transformation, <strong style="color:var(--cream);">Excel</strong> for rapid exploratory dashboards, and <strong style="color:var(--cream);">Power BI Desktop</strong> for the final interactive report. Real-world analytics experience includes athletics ticket revenue analysis and operational dashboards (confidential).
       </p>
     </div>
     <div>
@@ -774,9 +951,12 @@
       <div class="divider"></div>
       <div class="tools-list">
         <span class="tool-tag">Power BI Desktop</span>
+        <span class="tool-tag">Excel Dashboards</span>
+        <span class="tool-tag">Power Query</span>
+        <span class="tool-tag">Data Cleaning</span>
         <span class="tool-tag">DAX</span>
+        <span class="tool-tag">Pivot Tables</span>
         <span class="tool-tag">Data Modeling</span>
-        <span class="tool-tag">IMDb Dataset</span>
         <span class="tool-tag">Bar Charts</span>
         <span class="tool-tag">Line Charts</span>
         <span class="tool-tag">Dual Axis</span>
@@ -784,11 +964,70 @@
         <span class="tool-tag">Trend Analysis</span>
         <span class="tool-tag">Data Storytelling</span>
       </div>
-      <p style="font-size:0.82rem;color:var(--muted);line-height:1.7;margin-top:1.5rem;">
-        Real-world analytics work includes athletics ticket revenue analysis and operational dashboards — this project demonstrates foundational BI skills in a shareable format.
-      </p>
     </div>
   </div>
+</section>
+
+<!-- DOWNLOADS -->
+<section>
+  <p class="section-label">Project Files</p>
+  <h2>Download the Source Files</h2>
+  <div class="divider"></div>
+  <p class="section-intro">Both the Power BI report and the Excel workbook (including the cleaned dataset and Excel dashboard) are available to download below.</p>
+
+  <div class="downloads-grid">
+
+    <div class="download-card">
+      <div class="dl-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="4" fill="rgba(201,168,76,0.1)"/>
+          <path d="M8 6h10l6 6v14a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+          <path d="M18 6v6h6" stroke="#c9a84c" stroke-width="1.5" fill="none"/>
+          <text x="10" y="22" fill="#c9a84c" font-size="7" font-family="DM Mono, monospace" font-weight="500">PBIX</text>
+        </svg>
+      </div>
+      <div class="dl-info">
+        <h3>Power BI Report</h3>
+        <p>The full interactive Power BI Desktop file (.pbix) with all 4 visualizations, data model, and DAX measures.</p>
+        <div class="dl-meta">
+          <span>Kwan.pbix</span>
+          <span>35 KB</span>
+        </div>
+      </div>
+      <a href="Kwan.pbix" download="Kwan.pbix" class="dl-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Download
+      </a>
+    </div>
+
+    <div class="download-card">
+      <div class="dl-icon">
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="4" fill="rgba(224,92,58,0.1)"/>
+          <path d="M8 6h10l6 6v14a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2z" stroke="#e05c3a" stroke-width="1.5" fill="none"/>
+          <path d="M18 6v6h6" stroke="#e05c3a" stroke-width="1.5" fill="none"/>
+          <text x="9" y="22" fill="#e05c3a" font-size="7" font-family="DM Mono, monospace" font-weight="500">XLSX</text>
+        </svg>
+      </div>
+      <div class="dl-info">
+        <h3>Excel Workbook + Dataset</h3>
+        <p>The cleaned dataset (250 films, 7 columns), Power Query transformation steps, and the Excel dashboard with pivot charts.</p>
+        <div class="dl-meta">
+          <span>Kwan.xlsx</span>
+          <span>97 KB</span>
+        </div>
+      </div>
+      <a href="Kwan.xlsx" download="Kwan.xlsx" class="dl-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Download
+      </a>
+    </div>
+
+  </div>
+
+  <p style="font-size:0.78rem;color:var(--muted);margin-top:1.5rem;font-family:'DM Mono',monospace;">
+    Note: Power BI Desktop (free) is required to open the .pbix file. The .xlsx file opens in Excel 2016 or later.
+  </p>
 </section>
 
 <footer>
