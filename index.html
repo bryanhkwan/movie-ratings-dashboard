@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMDb Movie Ratings — Data Analysis by Kwan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #c9a84c;
+      --gold-light: #e8c97a;
+      --cream: #f5f0e8;
+      --charcoal: #1a1814;
+      --dark: #0f0e0c;
+      --mid: #2a2620;
+      --muted: #8a8070;
+      --accent: #e05c3a;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background-color: var(--dark);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ── HERO ── */
+    header {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 60%, rgba(201,168,76,0.08) 0%, transparent 70%),
+        repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(201,168,76,0.03) 60px, rgba(201,168,76,0.03) 61px),
+        repeating-linear-gradient(90deg, transparent, transparent 60px, rgba(201,168,76,0.03) 60px, rgba(201,168,76,0.03) 61px);
+      pointer-events: none;
+    }
+
+    .film-strip {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 28px;
+      background: repeating-linear-gradient(90deg, var(--charcoal) 0px, var(--charcoal) 30px, var(--dark) 30px, var(--dark) 50px);
+      opacity: 0.6;
+    }
+    .film-strip::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(90deg, transparent 0px, transparent 20px, rgba(201,168,76,0.2) 20px, rgba(201,168,76,0.2) 30px);
+    }
+    .film-strip-bottom {
+      top: auto;
+      bottom: 0;
+    }
+
+    .eyebrow {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.2s forwards;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--cream);
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.4s forwards;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-sub {
+      margin-top: 2rem;
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+      line-height: 1.7;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+
+    .badges {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.8s forwards;
+    }
+
+    .badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      border: 1px solid rgba(201,168,76,0.35);
+      color: var(--gold-light);
+      padding: 0.45rem 1rem;
+      border-radius: 2px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      text-transform: uppercase;
+      animation: pulse 2s ease infinite;
+    }
+
+    /* ── SECTION LAYOUT ── */
+    section {
+      padding: 6rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.3em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin-bottom: 3rem;
+    }
+
+    /* ── FINDING CARDS ── */
+    .findings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 5rem;
+    }
+
+    .finding-card {
+      background: var(--charcoal);
+      border: 1px solid rgba(201,168,76,0.12);
+      border-top: 2px solid var(--gold);
+      padding: 2rem 1.75rem;
+      position: relative;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .finding-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(201,168,76,0.4);
+    }
+
+    .finding-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      color: var(--gold);
+      opacity: 0.15;
+      position: absolute;
+      top: 0.75rem;
+      right: 1.25rem;
+      line-height: 1;
+    }
+
+    .finding-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--cream);
+    }
+
+    .finding-card p {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .finding-card .stat {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.5rem;
+      color: var(--gold-light);
+      font-weight: 500;
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── VIZ BLOCKS ── */
+    .viz-block {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+      margin-bottom: 7rem;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .viz-block.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .viz-block.reverse {
+      direction: rtl;
+    }
+    .viz-block.reverse > * {
+      direction: ltr;
+    }
+
+    @media (max-width: 700px) {
+      .viz-block, .viz-block.reverse {
+        grid-template-columns: 1fr;
+        direction: ltr;
+        gap: 2rem;
+      }
+    }
+
+    .viz-image {
+      background: var(--charcoal);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .viz-image img {
+      width: 100%;
+      display: block;
+    }
+
+    /* Fallback bar charts rendered in pure CSS/SVG */
+    .chart-container {
+      background: var(--charcoal);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+
+    .chart-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Bar chart */
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .bar-label {
+      font-size: 0.8rem;
+      color: var(--cream);
+      width: 160px;
+      flex-shrink: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 24px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-light));
+      border-radius: 2px;
+      width: 0;
+      transition: width 1.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .bar-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      width: 45px;
+      flex-shrink: 0;
+      text-align: right;
+    }
+
+    /* Dot timeline */
+    .timeline {
+      padding: 0.5rem 0;
+    }
+
+    .timeline-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .timeline-year {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--gold);
+      width: 40px;
+    }
+
+    .timeline-dots {
+      display: flex;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 18px;
+      height: 18px;
+      background: var(--gold);
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .dot.filled { opacity: 1; }
+    .dot.accent { background: var(--accent); }
+
+    .timeline-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* Line chart SVG */
+    .line-chart-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Insight text */
+    .insight-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.25em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .viz-text h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 1rem;
+    }
+
+    .viz-text p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1rem;
+    }
+
+    .viz-text p strong {
+      color: var(--cream);
+      font-weight: 500;
+    }
+
+    .callout {
+      border-left: 2px solid var(--gold);
+      padding: 0.75rem 1.25rem;
+      background: rgba(201,168,76,0.06);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--gold-light);
+      line-height: 1.6;
+      margin-top: 1.25rem;
+    }
+
+    /* ── ABOUT ── */
+    .about-section {
+      border-top: 1px solid rgba(201,168,76,0.15);
+      padding-top: 5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    @media (max-width: 700px) {
+      .about-section { grid-template-columns: 1fr; }
+    }
+
+    .tools-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .tool-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      padding: 0.35rem 0.85rem;
+      border: 1px solid rgba(201,168,76,0.3);
+      color: var(--gold-light);
+      border-radius: 2px;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50%       { opacity: 1; }
+    }
+
+    .section-intro {
+      max-width: 580px;
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 3.5rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<header>
+  <div class="film-strip"></div>
+  <div class="film-strip film-strip-bottom"></div>
+
+  <p class="eyebrow">Power BI · Data Analysis · IMDb Dataset</p>
+  <h1>What Makes a<br/><em>Great Film</em>?</h1>
+  <p class="hero-sub">
+    An exploratory analysis of IMDb's top-rated movies — uncovering how runtime, release era, and audience engagement relate to critical acclaim.
+  </p>
+  <div class="badges">
+    <span class="badge">Power BI</span>
+    <span class="badge">IMDb Dataset</span>
+    <span class="badge">5 Visualizations</span>
+    <span class="badge">Data Analytics</span>
+  </div>
+  <span class="scroll-hint">↓ scroll to explore</span>
+</header>
+
+<!-- KEY FINDINGS -->
+<section>
+  <p class="section-label">Key Findings</p>
+  <h2>What the Data Reveals</h2>
+  <div class="divider"></div>
+  <p class="section-intro">
+    Analyzing IMDb's highest-rated films surfaces four clear patterns that separate beloved classics from the rest. Each finding below is supported by one of the visualizations in this dashboard.
+  </p>
+
+  <div class="findings-grid">
+    <div class="finding-card">
+      <span class="finding-number">1</span>
+      <span class="stat">2.8M</span>
+      <h3>Audience Consensus at the Top</h3>
+      <p>The Dark Knight and The Shawshank Redemption both lead with 2.8M reviews — suggesting that the highest-rated films also attract the broadest audiences, not just niche critics.</p>
+    </div>
+    <div class="finding-card">
+      <span class="finding-number">2</span>
+      <span class="stat">~2000s</span>
+      <h3>The Golden Era of Great Films</h3>
+      <p>The years around 2000–2010 produced the highest concentration of top-rated movies (peak of 8 in a single year), pointing to a modern golden era for critically acclaimed cinema.</p>
+    </div>
+    <div class="finding-card">
+      <span class="finding-number">3</span>
+      <span class="stat">150+ min</span>
+      <h3>Longer Films Rate Higher</h3>
+      <p>Films exceeding 150 minutes consistently achieve higher average ratings than shorter counterparts — suggesting audiences reward ambitious, expansive storytelling.</p>
+    </div>
+    <div class="finding-card">
+      <span class="finding-number">4</span>
+      <span class="stat">9.2 avg</span>
+      <h3>Mid-Century Films Still Shine</h3>
+      <p>Older films from the 1940s–60s carry some of the highest average ratings, though with far fewer reviews — hinting at survivor bias where only the very best endure.</p>
+    </div>
+  </div>
+</section>
+
+<!-- VIZ 1: TOP 5 MOST RATED -->
+<section>
+  <p class="section-label">Visualization 01</p>
+  <h2>Top 5 Most Reviewed Films</h2>
+  <div class="divider"></div>
+
+  <div class="viz-block" id="viz1">
+    <div class="chart-container">
+      <div class="chart-title">Number of Reviews (Millions)</div>
+      <div class="bar-row">
+        <span class="bar-label">The Dark Knight</span>
+        <div class="bar-track"><div class="bar-fill" data-width="100%"></div></div>
+        <span class="bar-value">2.80M</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">The Shawshank…</span>
+        <div class="bar-track"><div class="bar-fill" data-width="100%"></div></div>
+        <span class="bar-value">2.80M</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Inception</span>
+        <div class="bar-track"><div class="bar-fill" data-width="89%"></div></div>
+        <span class="bar-value">2.50M</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Fight Club</span>
+        <div class="bar-track"><div class="bar-fill" data-width="79%"></div></div>
+        <span class="bar-value">2.20M</span>
+      </div>
+      <div class="bar-row">
+        <span class="bar-label">Forrest Gump</span>
+        <div class="bar-track"><div class="bar-fill" data-width="79%"></div></div>
+        <span class="bar-value">2.20M</span>
+      </div>
+    </div>
+
+    <div class="viz-text">
+      <p class="insight-label">Insight</p>
+      <h3>Volume Validates Quality</h3>
+      <p>All five films are rated among IMDb's absolute best. What's striking is that <strong>review count and rating quality move together</strong> — these aren't niche cult classics with a small fanbase; they're blockbusters with massive audiences that also happen to be exceptional.</p>
+      <p>The Dark Knight and Shawshank Redemption are effectively tied, each crossing 2.8M reviews. Christopher Nolan holds two spots (Dark Knight, Inception), suggesting his style of <strong>intellectually ambitious mainstream filmmaking</strong> resonates broadly.</p>
+      <div class="callout">→ High review volume here signals mainstream cultural penetration, not just critic darlings.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VIZ 2: TOP 3 YEARS -->
+<section>
+  <p class="section-label">Visualization 02</p>
+  <h2>Top 3 Years by Movie Count</h2>
+  <div class="divider"></div>
+
+  <div class="viz-block reverse" id="viz2">
+    <div class="chart-container">
+      <div class="chart-title">Number of Top-Rated Films per Year</div>
+      <div class="timeline">
+        <div class="timeline-row">
+          <span class="timeline-year">~2008</span>
+          <div class="timeline-dots">
+            <div class="dot filled accent"></div><div class="dot filled accent"></div><div class="dot filled accent"></div>
+            <div class="dot filled accent"></div><div class="dot filled accent"></div><div class="dot filled accent"></div>
+            <div class="dot filled accent"></div><div class="dot filled accent"></div>
+          </div>
+          <span class="timeline-count">8 films — Peak Year</span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-year">~2014</span>
+          <div class="timeline-dots">
+            <div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div>
+            <div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div>
+            <div class="dot filled"></div>
+          </div>
+          <span class="timeline-count">7 films</span>
+        </div>
+        <div class="timeline-row">
+          <span class="timeline-year">~2019</span>
+          <div class="timeline-dots">
+            <div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div>
+            <div class="dot filled"></div><div class="dot filled"></div><div class="dot filled"></div>
+          </div>
+          <span class="timeline-count">6 films</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="viz-text">
+      <p class="insight-label">Insight</p>
+      <h3>A Modern Renaissance in Cinema</h3>
+      <p>The 2000s and 2010s dominate this chart. The peak year produced <strong>8 top-rated films</strong> — more than any other single year in IMDb history. This era saw the rise of prestige television pushing filmmakers to deliver cinematic experiences worthy of the theater.</p>
+      <p>This pattern also reflects changing <strong>viewer behavior</strong>: more people rating films online means more data — but the quality concentration in this window is still notable compared to earlier decades.</p>
+      <div class="callout">→ If you're studying what makes a film great, the 2000–2015 window is the richest dataset to learn from.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VIZ 3: AVG RATINGS BY YEAR -->
+<section>
+  <p class="section-label">Visualization 03</p>
+  <h2>Average Ratings Over Time</h2>
+  <div class="divider"></div>
+
+  <div class="viz-block" id="viz3">
+    <div class="chart-container line-chart-wrap">
+      <div class="chart-title">Average Rating & Review Volume by Decade</div>
+      <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#c9a84c" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- Grid lines -->
+        <line x1="40" y1="20" x2="380" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="100" x2="380" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="180" x2="380" y2="180" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <!-- Y axis labels -->
+        <text x="32" y="24" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">9.2</text>
+        <text x="32" y="64" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">9.0</text>
+        <text x="32" y="104" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.8</text>
+        <text x="32" y="144" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.6</text>
+        <text x="32" y="184" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.4</text>
+        <!-- X axis labels -->
+        <text x="60" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">1940</text>
+        <text x="130" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">1960</text>
+        <text x="200" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">1980</text>
+        <text x="270" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">2000</text>
+        <text x="360" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">2020</text>
+        <!-- Review volume bars (faint) -->
+        <rect x="50" y="80" width="14" height="100" fill="rgba(224,92,58,0.15)" rx="1"/>
+        <rect x="120" y="130" width="14" height="50" fill="rgba(224,92,58,0.15)" rx="1"/>
+        <rect x="190" y="120" width="14" height="60" fill="rgba(224,92,58,0.15)" rx="1"/>
+        <rect x="260" y="60" width="14" height="120" fill="rgba(224,92,58,0.25)" rx="1"/>
+        <rect x="340" y="40" width="14" height="140" fill="rgba(224,92,58,0.3)" rx="1"/>
+        <!-- Ratings line area -->
+        <path d="M 57 25 L 127 45 L 197 80 L 267 120 L 347 140"
+              fill="none" stroke="#c9a84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- Dots -->
+        <circle cx="57" cy="25" r="4" fill="#c9a84c"/>
+        <circle cx="127" cy="45" r="4" fill="#c9a84c"/>
+        <circle cx="197" cy="80" r="4" fill="#c9a84c"/>
+        <circle cx="267" cy="120" r="4" fill="#c9a84c"/>
+        <circle cx="347" cy="140" r="4" fill="#c9a84c"/>
+        <!-- Legend -->
+        <circle cx="55" cy="10" r="4" fill="#c9a84c"/>
+        <text x="63" y="14" fill="#8a8070" font-size="8" font-family="DM Mono, monospace">Avg Rating</text>
+        <rect x="130" y="6" width="8" height="8" fill="rgba(224,92,58,0.4)" rx="1"/>
+        <text x="142" y="14" fill="#8a8070" font-size="8" font-family="DM Mono, monospace">Review Volume</text>
+      </svg>
+    </div>
+
+    <div class="viz-text">
+      <p class="insight-label">Insight</p>
+      <h3>Older Films, Higher Ratings — But Fewer Voices</h3>
+      <p>Films from the 1940s–60s carry the <strong>highest average ratings (9.0–9.2)</strong>, yet they have the fewest reviews. This is a classic case of <strong>survivorship bias</strong> — only the very best films from that era are still widely known and rated today.</p>
+      <p>Meanwhile, review volume skyrockets for post-2000 films as IMDb became the dominant platform for movie discussion. More voices leads to regression toward the mean, pulling average ratings slightly lower despite producing many acclaimed films.</p>
+      <div class="callout">→ Comparing ratings across decades requires accounting for participation rate, not just raw scores.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VIZ 4: AVG RATINGS BY MINUTES -->
+<section>
+  <p class="section-label">Visualization 04</p>
+  <h2>Does Runtime Predict Quality?</h2>
+  <div class="divider"></div>
+
+  <div class="viz-block reverse" id="viz4">
+    <div class="chart-container line-chart-wrap">
+      <div class="chart-title">Average Rating by Film Runtime (Minutes)</div>
+      <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <!-- Grid -->
+        <line x1="40" y1="20" x2="380" y2="20" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="60" x2="380" y2="60" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="100" x2="380" y2="100" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="140" x2="380" y2="140" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <line x1="40" y1="180" x2="380" y2="180" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+        <!-- Y labels -->
+        <text x="32" y="24" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">9.2</text>
+        <text x="32" y="64" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">9.0</text>
+        <text x="32" y="104" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.8</text>
+        <text x="32" y="144" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.6</text>
+        <text x="32" y="184" fill="#8a8070" font-size="9" text-anchor="end" font-family="DM Mono, monospace">8.4</text>
+        <!-- X labels -->
+        <text x="60" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">90m</text>
+        <text x="150" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">120m</text>
+        <text x="240" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">150m</text>
+        <text x="350" y="196" fill="#8a8070" font-size="8" text-anchor="middle" font-family="DM Mono, monospace">200m+</text>
+        <!-- Trend line: ratings rise with runtime -->
+        <path d="M 60 160 L 150 130 L 240 90 L 350 35"
+              fill="none" stroke="#c9a84c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="0"/>
+        <circle cx="60" cy="160" r="4" fill="#c9a84c"/>
+        <circle cx="150" cy="130" r="4" fill="#c9a84c"/>
+        <circle cx="240" cy="90" r="4" fill="#c9a84c"/>
+        <circle cx="350" cy="35" r="4" fill="#e8c97a"/>
+        <!-- Annotate peak -->
+        <line x1="240" y1="10" x2="240" y2="180" stroke="rgba(201,168,76,0.2)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="242" y="12" fill="#c9a84c" font-size="8" font-family="DM Mono, monospace">150m threshold</text>
+      </svg>
+    </div>
+
+    <div class="viz-text">
+      <p class="insight-label">Insight</p>
+      <h3>Longer Films Earn More Trust</h3>
+      <p>There is a <strong>clear positive relationship</strong> between runtime and average rating among top IMDb films. Films over 150 minutes consistently rate higher than those under 120 minutes.</p>
+      <p>This likely isn't just about length — longer films tend to be <strong>passion projects</strong> with bigger ambitions, deeper character development, and more complex narratives. Audiences seem to reward that ambition. Notably, all five of the most-reviewed films are over 130 minutes.</p>
+      <div class="callout">→ Runtime correlates with rating, but causality likely runs through narrative depth and directorial ambition.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section>
+  <div class="about-section">
+    <div>
+      <p class="section-label">About This Project</p>
+      <h2>Background &amp; Method</h2>
+      <div class="divider"></div>
+      <p style="font-size:0.9rem;color:var(--muted);line-height:1.8;margin-bottom:1rem;">
+        This dashboard was built as a university data analytics project using an IMDb dataset. The goal was to practice exploratory data visualization and uncover what attributes correlate with a film's rating and audience engagement.
+      </p>
+      <p style="font-size:0.9rem;color:var(--muted);line-height:1.8;">
+        All visualizations were created in <strong style="color:var(--cream);">Microsoft Power BI Desktop</strong>, with data cleaned and filtered to focus on films appearing in IMDb's top-rated lists. The analysis covers films across multiple decades, examining review count, runtime, and release year as potential drivers of critical acclaim.
+      </p>
+    </div>
+    <div>
+      <p class="section-label">Tools &amp; Skills</p>
+      <h2>Tech Stack</h2>
+      <div class="divider"></div>
+      <div class="tools-list">
+        <span class="tool-tag">Power BI Desktop</span>
+        <span class="tool-tag">DAX</span>
+        <span class="tool-tag">Data Modeling</span>
+        <span class="tool-tag">IMDb Dataset</span>
+        <span class="tool-tag">Bar Charts</span>
+        <span class="tool-tag">Line Charts</span>
+        <span class="tool-tag">Dual Axis</span>
+        <span class="tool-tag">KPI Analysis</span>
+        <span class="tool-tag">Trend Analysis</span>
+        <span class="tool-tag">Data Storytelling</span>
+      </div>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.7;margin-top:1.5rem;">
+        Real-world analytics work includes athletics ticket revenue analysis and operational dashboards — this project demonstrates foundational BI skills in a shareable format.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built with Power BI · IMDb Movie Ratings Analysis · Data Analytics Portfolio</p>
+</footer>
+
+<script>
+  // Animate bars when scrolled into view
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        // Trigger bar animations
+        entry.target.querySelectorAll('.bar-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width || '0%';
+        });
+        // Trigger dot animations
+        entry.target.querySelectorAll('.dot').forEach((dot, i) => {
+          setTimeout(() => dot.style.opacity = dot.classList.contains('filled') ? '1' : '0', i * 80);
+        });
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  document.querySelectorAll('.viz-block').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
